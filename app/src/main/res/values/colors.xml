@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base -->
+    <color name="bg_dark">#0F1117</color>
+    <color name="bg_card">#1A1D27</color>
+    <color name="bg_surface">#22253A</color>
+
+    <!-- Accent -->
+    <color name="accent_teal">#00E5C8</color>
+    <color name="accent_teal_dim">#1A3B38</color>
+
+    <!-- Text -->
+    <color name="text_primary">#F0F2FF</color>
+    <color name="text_secondary">#8890AA</color>
+    <color name="text_hint">#555A70</color>
+
+    <!-- Status -->
+    <color name="income_green">#4CD97B</color>
+    <color name="expense_red">#FF5C75</color>
+
+    <!-- System -->
+    <color name="colorPrimary">#1A1D27</color>
+    <color name="colorPrimaryVariant">#0F1117</color>
+    <color name="colorOnPrimary">#F0F2FF</color>
+    <color name="colorSecondary">#00E5C8</color>
+    <color name="colorOnSecondary">#0F1117</color>
+    <color name="colorSurface">#1A1D27</color>
+    <color name="colorOnSurface">#F0F2FF</color>
+</resources>
