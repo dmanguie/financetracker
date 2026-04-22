@@ -9,17 +9,22 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FinanceTracker">
 
-        <!-- ✅ Dashboard is now the launcher -->
+        <!-- ✅ Splash is now the launcher -->
         <activity
-            android:name=".DashboardActivity"
-            android:exported="true">
+            android:name=".SplashActivity"
+            android:exported="true"
+            android:theme="@style/Theme.FinanceTracker">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
 
-        <!-- MainActivity is now a secondary screen -->
+        <!-- Dashboard is now entered from Splash -->
+        <activity
+            android:name=".DashboardActivity"
+            android:exported="false"/>
+
         <activity
             android:name=".MainActivity"
             android:exported="false"/>
@@ -28,5 +33,6 @@
             android:name=".AddEditTransactionActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize"/>
+
     </application>
 </manifest>
