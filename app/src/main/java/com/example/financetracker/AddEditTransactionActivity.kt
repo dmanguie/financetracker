@@ -69,20 +69,41 @@ class AddEditTransactionActivity : AppCompatActivity() {
         @Suppress("DEPRECATION")
         editingTransaction = intent.getSerializableExtra(EXTRA_TRANSACTION) as? Transaction
 
+        // ─────────────────────────────────────────────
+        // ✅ HANDLE PRESET TYPE (from Dashboard buttons)
+        // ─────────────────────────────────────────────
+        val presetType = intent.getStringExtra("PRESET_TYPE")
+
+        // ─────────────────────────────────────────────
+        // EDIT MODE
+        // ─────────────────────────────────────────────
         editingTransaction?.let { t ->
             supportActionBar?.title = getString(R.string.edit_transaction)
+
             etTitle.setText(t.title)
             etAmount.setText(t.amount.toString())
             selectedDateMillis = t.dateMillis
             tvDate.text = displaySdf.format(Date(t.dateMillis))
+
             if (t.type == TransactionViewModel.TYPE_INCOME) {
                 findViewById<RadioButton>(R.id.rbIncome).isChecked = true
             } else {
                 findViewById<RadioButton>(R.id.rbExpense).isChecked = true
             }
+
             spinnerCategory.setSelection(categories.indexOf(t.category).coerceAtLeast(0))
         } ?: run {
+            // ─────────────────────────────────────────────
+            // ADD MODE
+            // ─────────────────────────────────────────────
             supportActionBar?.title = getString(R.string.add_transaction)
+
+            // Apply preset ONLY if not editing
+            if (presetType == TransactionViewModel.TYPE_INCOME) {
+                findViewById<RadioButton>(R.id.rbIncome).isChecked = true
+            } else if (presetType == TransactionViewModel.TYPE_EXPENSE) {
+                findViewById<RadioButton>(R.id.rbExpense).isChecked = true
+            }
         }
 
         btnCancel.setOnClickListener { finish() }
@@ -97,18 +118,22 @@ class AddEditTransactionActivity : AppCompatActivity() {
                 etTitle.error = getString(R.string.error_required)
                 return@setOnClickListener
             }
+
             val amount = amountText.toDoubleOrNull()
             if (amount == null || amount <= 0) {
                 etAmount.error = getString(R.string.error_invalid_amount)
                 return@setOnClickListener
             }
+
             if (selectedTypeId == -1) {
                 Toast.makeText(this, getString(R.string.error_select_type), Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             val type = if (selectedTypeId == R.id.rbIncome)
-                TransactionViewModel.TYPE_INCOME else TransactionViewModel.TYPE_EXPENSE
+                TransactionViewModel.TYPE_INCOME
+            else
+                TransactionViewModel.TYPE_EXPENSE
 
             if (editingTransaction == null) {
                 viewModel.insert(
@@ -131,6 +156,7 @@ class AddEditTransactionActivity : AppCompatActivity() {
                     )
                 )
             }
+
             finish()
         }
     }
