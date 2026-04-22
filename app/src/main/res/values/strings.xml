@@ -1,4 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Finance Tracker</string>
+
+    <!-- Transaction types -->
+    <string name="type_income">Income</string>
+    <string name="type_expense">Expense</string>
+    <string name="label_income">INCOME</string>
+    <string name="label_expense">EXPENSE</string>
+
+    <!-- Activity titles -->
+    <string name="add_transaction">Add Transaction</string>
+    <string name="edit_transaction">Edit Transaction</string>
+
+    <!-- Formatting -->
+    <string name="currency_format">₱%,.2f</string>
+    <string name="amount_income">+₱%,.2f</string>
+    <string name="amount_expense">-₱%,.2f</string>
+    <string name="budget_label">Budget: ₱%,.0f / ₱%,.0f (%d%%)</string>
+
+    <!-- Errors -->
+    <string name="error_required">Required</string>
+    <string name="error_invalid_amount">Enter a valid amount</string>
+    <string name="error_select_type">Please select a type</string>
+    <string name="error_invalid_budget">Invalid budget amount</string>
+
+    <!-- Delete dialog -->
+    <string name="delete_title">Delete Transaction</string>
+    <string name="delete_message">Remove this entry?</string>
+    <string name="delete_confirm">Delete</string>
+    <string name="cancel">Cancel</string>
+
+    <!-- Budget dialog -->
+    <string name="budget_dialog_title">Set Monthly Budget</string>
+    <string name="budget_hint">Enter monthly budget</string>
+    <string name="budget_set">Set</string>
+
+    <!-- Empty state -->
+    <string name="empty_state">🎒 No transactions yet!\nTap + to add your first entry.</string>
 </resources>

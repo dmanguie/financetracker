@@ -5,13 +5,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import java.text.SimpleDateFormat
+import java.util.*
 
 class TransactionAdapter(
-    private var transactions: List<Transaction>,
     private val onEdit: (Transaction) -> Unit,
     private val onDelete: (Long) -> Unit
-) : RecyclerView.Adapter<TransactionAdapter.ViewHolder>() {
+) : ListAdapter<Transaction, TransactionAdapter.ViewHolder>(DIFF_CALLBACK) {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val tvEmoji: TextView = view.findViewById(R.id.tvEmoji)
@@ -31,39 +34,41 @@ class TransactionAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val t = transactions[position]
+        val t = getItem(position)
+        val ctx = holder.itemView.context
 
         holder.tvEmoji.text = getCategoryEmoji(t.category)
         holder.tvTitle.text = t.title
         holder.tvCategory.text = t.category
-        holder.tvDate.text = t.date
+        holder.tvDate.text = formatDate(t.dateMillis)
 
-        if (t.type == "Income") {
-            holder.tvAmount.text = "+₱${String.format("%,.2f", t.amount)}"
-            holder.tvAmount.setTextColor(holder.itemView.context.getColor(R.color.income_green))
-            holder.tvType.text = "INCOME"
+        if (t.type == TransactionViewModel.TYPE_INCOME) {
+            holder.tvAmount.text = ctx.getString(R.string.amount_income, t.amount)
+            holder.tvAmount.setTextColor(ctx.getColor(R.color.income_green))
+            holder.tvType.text = ctx.getString(R.string.label_income)
             holder.tvType.setBackgroundResource(R.drawable.bg_badge_income)
-            holder.tvType.setTextColor(holder.itemView.context.getColor(R.color.income_green))
+            holder.tvType.setTextColor(ctx.getColor(R.color.income_green))
         } else {
-            holder.tvAmount.text = "-₱${String.format("%,.2f", t.amount)}"
-            holder.tvAmount.setTextColor(holder.itemView.context.getColor(R.color.expense_red))
-            holder.tvType.text = "EXPENSE"
+            holder.tvAmount.text = ctx.getString(R.string.amount_expense, t.amount)
+            holder.tvAmount.setTextColor(ctx.getColor(R.color.expense_red))
+            holder.tvType.text = ctx.getString(R.string.label_expense)
             holder.tvType.setBackgroundResource(R.drawable.bg_badge_expense)
-            holder.tvType.setTextColor(holder.itemView.context.getColor(R.color.expense_red))
+            holder.tvType.setTextColor(ctx.getColor(R.color.expense_red))
         }
 
         holder.btnEdit.setOnClickListener { onEdit(t) }
         holder.btnDelete.setOnClickListener { onDelete(t.id) }
     }
 
-    override fun getItemCount() = transactions.size
-
-    fun updateData(newList: List<Transaction>) {
-        transactions = newList
-        notifyDataSetChanged()
-    }
-
     companion object {
+        private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Transaction>() {
+            override fun areItemsTheSame(old: Transaction, new: Transaction) = old.id == new.id
+            override fun areContentsTheSame(old: Transaction, new: Transaction) = old == new
+        }
+
+        private val displaySdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        fun formatDate(millis: Long): String = displaySdf.format(Date(millis))
+
         fun getCategoryEmoji(category: String): String = when (category) {
             "Food" -> "🍜"
             "Transport" -> "🚌"

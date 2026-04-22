@@ -1,28 +1,47 @@
 package com.example.financetracker
 
-object TransactionRepository {
-    private val transactions = mutableListOf<Transaction>()
-    var monthlyBudget: Double = 5000.0
+import android.content.Context
+import android.content.SharedPreferences
+import androidx.lifecycle.LiveData
+import java.text.SimpleDateFormat
+import java.util.*
 
-    fun getAll(): List<Transaction> = transactions.sortedByDescending { it.date }
+class TransactionRepository(context: Context) {
 
-    fun add(transaction: Transaction) = transactions.add(transaction)
+    private val dao: TransactionDao = TransactionDatabase.getInstance(context).transactionDao()
+    private val prefs: SharedPreferences =
+        context.getSharedPreferences("finance_prefs", Context.MODE_PRIVATE)
 
-    fun update(updated: Transaction) {
-        val index = transactions.indexOfFirst { it.id == updated.id }
-        if (index != -1) transactions[index] = updated
+    var monthlyBudget: Double
+        get() = prefs.getFloat("monthly_budget", 5000f).toDouble()
+        set(value) = prefs.edit().putFloat("monthly_budget", value.toFloat()).apply()
+
+    fun getAll(): LiveData<List<Transaction>> = dao.getAll()
+
+    fun getByMonth(yearMonth: String): LiveData<List<Transaction>> {
+        val (start, end) = yearMonthToRange(yearMonth)
+        return dao.getByMonth(start, end)
     }
 
-    fun delete(id: Long) = transactions.removeAll { it.id == id }
+    suspend fun insert(transaction: Transaction) = dao.insert(transaction)
 
-    fun getTotalIncome(): Double =
-        transactions.filter { it.type == "Income" }.sumOf { it.amount }
+    suspend fun update(transaction: Transaction) = dao.update(transaction)
 
-    fun getTotalExpense(): Double =
-        transactions.filter { it.type == "Expense" }.sumOf { it.amount }
+    suspend fun deleteById(id: Long) = dao.deleteById(id)
 
-    fun getBalance(): Double = getTotalIncome() - getTotalExpense()
-
-    fun getExpenseByMonth(yearMonth: String): Double =
-        transactions.filter { it.type == "Expense" && it.date.startsWith(yearMonth) }.sumOf { it.amount }
+    companion object {
+        fun yearMonthToRange(yearMonth: String): Pair<Long, Long> {
+            val sdf = SimpleDateFormat("yyyy-MM", Locale.getDefault())
+            val cal = Calendar.getInstance()
+            cal.time = sdf.parse(yearMonth) ?: Date()
+            cal.set(Calendar.DAY_OF_MONTH, 1)
+            cal.set(Calendar.HOUR_OF_DAY, 0)
+            cal.set(Calendar.MINUTE, 0)
+            cal.set(Calendar.SECOND, 0)
+            cal.set(Calendar.MILLISECOND, 0)
+            val start = cal.timeInMillis
+            cal.add(Calendar.MONTH, 1)
+            return start to cal.timeInMillis
+        }
+    }
 }
