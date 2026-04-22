@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:background="@color/bg_dark">
 
-    <!-- Logo Card -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardLogo"
         android:layout_width="100dp"
@@ -19,51 +18,48 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintVertical_bias="0.42">
+        app:layout_constraintVertical_bias="0.42"
+        app:layout_constraintVertical_chainStyle="packed">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:gravity="center"
             android:text="💰"
-            android:textSize="44sp"
-            android:gravity="center"/>
+            android:textSize="44sp"/>
     </androidx.cardview.widget.CardView>
 
-    <!-- App Name -->
     <TextView
         android:id="@+id/tvAppName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:alpha="0"
+        android:fontFamily="sans-serif-condensed"
+        android:layout_marginTop="20dp"
         android:text="Finance Tracker"
         android:textColor="@color/text_primary"
         android:textSize="28sp"
         android:textStyle="bold"
-        android:fontFamily="sans-serif-condensed"
-        android:layout_marginTop="20dp"
-        app:layout_constraintTop_toBottomOf="@id/cardLogo"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/tvTagline"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/tvTagline"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardLogo"/>
 
-    <!-- Tagline -->
     <TextView
         android:id="@+id/tvTagline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:alpha="0"
+        android:layout_marginTop="8dp"
         android:text="Track your finances, easily."
         android:textColor="@color/text_secondary"
         android:textSize="14sp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@id/tvAppName"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvAppName"
         app:layout_constraintVertical_bias="0"/>
 
-    <!-- Bottom accent bar -->
     <View
         android:id="@+id/accentBar"
         android:layout_width="48dp"
@@ -71,22 +67,21 @@
         android:alpha="0"
         android:background="@drawable/bg_accent_bar"
         android:layout_marginTop="24dp"
-        app:layout_constraintTop_toBottomOf="@id/tvTagline"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintTop_toBottomOf="@id/tvTagline"/>
 
-    <!-- Version text at bottom -->
     <TextView
         android:id="@+id/tvVersion"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:alpha="0"
+        android:layout_marginBottom="32dp"
         android:text="v1.0"
         android:textColor="@color/text_hint"
         android:textSize="12sp"
-        android:layout_marginBottom="32dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

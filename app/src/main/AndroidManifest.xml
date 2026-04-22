@@ -9,7 +9,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FinanceTracker">
 
-        <!-- ✅ Splash is now the launcher -->
         <activity
             android:name=".SplashActivity"
             android:exported="true"
@@ -20,7 +19,11 @@
             </intent-filter>
         </activity>
 
-        <!-- Dashboard is now entered from Splash -->
+        <activity
+            android:name=".LoginActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize"/>
+
         <activity
             android:name=".DashboardActivity"
             android:exported="false"/>

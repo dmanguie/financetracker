@@ -1,12 +1,14 @@
 package com.example.financetracker
 
+import android.annotation.SuppressLint
+import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import java.text.SimpleDateFormat
@@ -37,6 +39,7 @@ class DashboardActivity : AppCompatActivity() {
     private lateinit var btnGoToTransactions: com.google.android.material.button.MaterialButton
     private lateinit var btnQuickAddIncome: com.google.android.material.button.MaterialButton
     private lateinit var btnQuickAddExpense: com.google.android.material.button.MaterialButton
+    private lateinit var btnLogout: ImageButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,17 +51,18 @@ class DashboardActivity : AppCompatActivity() {
     }
 
     private fun bindViews() {
-        tvBalance = findViewById(R.id.tvDashBalance)
-        tvIncome = findViewById(R.id.tvDashIncome)
-        tvExpense = findViewById(R.id.tvDashExpense)
-        tvMonthExpense = findViewById(R.id.tvDashMonthExpense)
-        tvTxCount = findViewById(R.id.tvDashTxCount)
-        tvRecentEmpty = findViewById(R.id.tvRecentEmpty)
-        llRecentList = findViewById(R.id.llRecentList)
-        tvSeeAll = findViewById(R.id.tvSeeAll)
+        tvBalance          = findViewById(R.id.tvDashBalance)
+        tvIncome           = findViewById(R.id.tvDashIncome)
+        tvExpense          = findViewById(R.id.tvDashExpense)
+        tvMonthExpense     = findViewById(R.id.tvDashMonthExpense)
+        tvTxCount          = findViewById(R.id.tvDashTxCount)
+        tvRecentEmpty      = findViewById(R.id.tvRecentEmpty)
+        llRecentList       = findViewById(R.id.llRecentList)
+        tvSeeAll           = findViewById(R.id.tvSeeAll)
         btnGoToTransactions = findViewById(R.id.btnGoToTransactions)
-        btnQuickAddIncome = findViewById(R.id.btnQuickAddIncome)
+        btnQuickAddIncome  = findViewById(R.id.btnQuickAddIncome)
         btnQuickAddExpense = findViewById(R.id.btnQuickAddExpense)
+        btnLogout          = findViewById(R.id.btnLogout)
     }
 
     private fun observeViewModel() {
@@ -69,28 +73,14 @@ class DashboardActivity : AppCompatActivity() {
                 else getColor(R.color.expense_red)
             )
         }
-
-        viewModel.totalIncome.observe(this) { income ->
-            tvIncome.text = formatCurrency(income)
-        }
-
-        viewModel.totalExpense.observe(this) { expense ->
-            tvExpense.text = formatCurrency(expense)
-        }
-
-        viewModel.currentMonthExpense.observe(this) { spent ->
-            tvMonthExpense.text = formatCurrency(spent)
-        }
-
-        viewModel.totalTransactionCount.observe(this) { count ->
-            tvTxCount.text = count.toString()
-        }
-
-        viewModel.recentTransactions.observe(this) { transactions ->
-            populateRecentList(transactions)
-        }
+        viewModel.totalIncome.observe(this) { tvIncome.text = formatCurrency(it) }
+        viewModel.totalExpense.observe(this) { tvExpense.text = formatCurrency(it) }
+        viewModel.currentMonthExpense.observe(this) { tvMonthExpense.text = formatCurrency(it) }
+        viewModel.totalTransactionCount.observe(this) { tvTxCount.text = it.toString() }
+        viewModel.recentTransactions.observe(this) { populateRecentList(it) }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun populateRecentList(transactions: List<Transaction>) {
         llRecentList.removeAllViews()
 
@@ -107,13 +97,12 @@ class DashboardActivity : AppCompatActivity() {
         val inflater = LayoutInflater.from(this)
 
         transactions.forEachIndexed { index, tx ->
-            val itemView = inflater.inflate(R.layout.item_recent_transaction_dash, llRecentList, false)
-
+            val itemView = inflater.inflate(
+                R.layout.item_recent_transaction_dash, llRecentList, false
+            )
             itemView.findViewById<TextView>(R.id.tvRecentEmoji).text =
                 TransactionAdapter.getCategoryEmoji(tx.category)
-
             itemView.findViewById<TextView>(R.id.tvRecentTitle).text = tx.title
-
             itemView.findViewById<TextView>(R.id.tvRecentDate).text =
                 sdf.format(Date(tx.dateMillis))
 
@@ -128,7 +117,6 @@ class DashboardActivity : AppCompatActivity() {
 
             llRecentList.addView(itemView)
 
-            // Add a thin divider between items (not after last)
             if (index < transactions.size - 1) {
                 val divider = View(this).apply {
                     layoutParams = LinearLayout.LayoutParams(
@@ -144,13 +132,8 @@ class DashboardActivity : AppCompatActivity() {
     private fun setupNavigation() {
         val goToMain = Intent(this, MainActivity::class.java)
 
-        btnGoToTransactions.setOnClickListener {
-            startActivity(goToMain)
-        }
-
-        tvSeeAll.setOnClickListener {
-            startActivity(goToMain)
-        }
+        btnGoToTransactions.setOnClickListener { startActivity(goToMain) }
+        tvSeeAll.setOnClickListener { startActivity(goToMain) }
 
         btnQuickAddIncome.setOnClickListener {
             startActivity(
@@ -167,13 +150,25 @@ class DashboardActivity : AppCompatActivity() {
                 }
             )
         }
+
+        btnLogout.setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle("Logout")
+                .setMessage("Are you sure you want to logout?")
+                .setPositiveButton("Logout") { _, _ ->
+                    AuthManager(this).logout()
+                    startActivity(
+                        Intent(this, LoginActivity::class.java).apply {
+                            flags = Intent.FLAG_ACTIVITY_NEW_TASK or
+                                    Intent.FLAG_ACTIVITY_CLEAR_TASK
+                        }
+                    )
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
     }
 
-    override fun onResume() {
-        super.onResume()
-        // LiveData auto-refreshes — no manual refresh needed
-    }
-
-    private fun formatCurrency(amount: Double): String =
+    private fun formatCurrency(amount: Double) =
         "₱${String.format("%,.2f", amount)}"
 }

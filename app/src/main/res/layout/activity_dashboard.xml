@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:background="@color/bg_dark">
 
-    <!-- ── Top Header ── -->
+    <!-- Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -42,7 +42,6 @@
                 android:fontFamily="sans-serif-condensed"/>
         </LinearLayout>
 
-        <!-- Manage Transactions Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnGoToTransactions"
             android:layout_width="wrap_content"
@@ -54,6 +53,16 @@
             app:cornerRadius="20dp"
             android:paddingStart="14dp"
             android:paddingEnd="14dp"/>
+
+        <ImageButton
+            android:id="@+id/btnLogout"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@android:drawable/ic_lock_power_off"
+            android:background="@drawable/bg_icon_btn"
+            android:tint="@color/expense_red"
+            android:layout_marginStart="8dp"
+            android:contentDescription="Logout"/>
     </LinearLayout>
 
     <ScrollView
@@ -69,7 +78,7 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- ── Balance Card ── -->
+            <!-- Balance Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -106,8 +115,7 @@
                             android:layout_weight="1"
                             android:text="Total Balance"
                             android:textColor="@color/text_secondary"
-                            android:textSize="13sp"
-                            android:letterSpacing="0.05"/>
+                            android:textSize="13sp"/>
 
                         <TextView
                             android:id="@+id/tvBalanceStatus"
@@ -133,7 +141,6 @@
                         android:fontFamily="sans-serif-condensed"
                         android:layout_marginBottom="16dp"/>
 
-                    <!-- Income / Expense row inside balance card -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -196,14 +203,13 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- ── Stats Row: This Month + Transactions ── -->
+            <!-- Stats Row -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginBottom="16dp">
 
-                <!-- This Month Spend -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -252,7 +258,6 @@
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Total Transactions -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -302,7 +307,7 @@
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
 
-            <!-- ── Recent Activity Card ── -->
+            <!-- Recent Activity Card -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -317,7 +322,6 @@
                     android:orientation="vertical"
                     android:padding="20dp">
 
-                    <!-- Section Header -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -344,7 +348,6 @@
                             android:padding="4dp"/>
                     </LinearLayout>
 
-                    <!-- Empty state -->
                     <TextView
                         android:id="@+id/tvRecentEmpty"
                         android:layout_width="match_parent"
@@ -357,7 +360,6 @@
                         android:paddingVertical="20dp"
                         android:visibility="gone"/>
 
-                    <!-- Recent list container -->
                     <LinearLayout
                         android:id="@+id/llRecentList"
                         android:layout_width="match_parent"
@@ -366,7 +368,7 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- ── Quick Action Buttons ── -->
+            <!-- Quick Actions -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
