@@ -4,6 +4,7 @@ package com.example.financetracker
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
@@ -13,22 +14,34 @@ import java.util.*
 /**
  * Single source of truth for transaction data.
  *
- * Reads  → Firestore real-time listeners exposed as LiveData
- * Writes → Kotlin suspend functions (run in a coroutine scope)
- * Budget → SharedPreferences (local, no sync needed)
+ * Firestore path:  users/{uid}/transactions/{docId}
+ *
+ * Each signed-in user has their own sub-collection so transactions
+ * are private — no user can see another's data.
+ *
+ * Reads  → real-time LiveData via [FirestoreTransactionLiveData]
+ * Writes → Kotlin suspend functions (call inside a coroutine scope)
+ * Budget → SharedPreferences (local device storage)
  */
 class TransactionRepository(context: Context) {
 
-    // ── Firestore ──────────────────────────────────────────────────────────
-    private val db = FirebaseFirestore.getInstance()
+    private val db   = FirebaseFirestore.getInstance()
+    private val auth = FirebaseAuth.getInstance()
 
     /**
-     * "transactions" is the Firestore collection name.
-     * Every document in it is one Transaction.
+     * Returns the Firestore sub-collection for the current user.
+     * Using a computed property (get()) ensures we always use the
+     * correct UID even if the user changes during the app session.
+     *
+     * Path: users / {uid} / transactions
      */
-    private val collection = db.collection("transactions")
+    private val collection
+        get() = db
+            .collection("users")
+            .document(auth.currentUser?.uid ?: "anonymous")
+            .collection("transactions")
 
-    // ── Budget (local only) ────────────────────────────────────────────────
+    // ── Budget (stored locally) ────────────────────────────────────────────
     private val prefs: SharedPreferences =
         context.getSharedPreferences("finance_prefs", Context.MODE_PRIVATE)
 
@@ -38,19 +51,13 @@ class TransactionRepository(context: Context) {
 
     // ── Read operations ────────────────────────────────────────────────────
 
-    /**
-     * Returns ALL transactions ordered by date (newest first).
-     * Used by the Dashboard.
-     */
+    /** All transactions for the current user, newest first. */
     fun getAll(): LiveData<List<Transaction>> =
         FirestoreTransactionLiveData(
             collection.orderBy("dateMillis", Query.Direction.DESCENDING)
         )
 
-    /**
-     * Returns transactions for a specific month, e.g. "2025-05".
-     * Used by the Transactions screen (MainActivity) with chip filter.
-     */
+    /** Transactions for a specific month, e.g. "2025-05". */
     fun getByMonth(yearMonth: String): LiveData<List<Transaction>> {
         val (start, end) = yearMonthToRange(yearMonth)
         return FirestoreTransactionLiveData(
@@ -61,27 +68,19 @@ class TransactionRepository(context: Context) {
         )
     }
 
-    // ── Write operations (suspend = call from a coroutine) ─────────────────
+    // ── Write operations ───────────────────────────────────────────────────
 
-    /**
-     * Adds a new transaction. Firestore auto-generates the document ID.
-     * The [transaction.id] field is ignored on insert (it will be
-     * filled in when you read it back, via @DocumentId).
-     */
+    /** Adds a new transaction. Firestore generates the document ID. */
     suspend fun insert(transaction: Transaction) {
         collection.add(transaction).await()
     }
 
-    /**
-     * Overwrites the existing document that matches [transaction.id].
-     */
+    /** Replaces the document matching [transaction.id] with new data. */
     suspend fun update(transaction: Transaction) {
         collection.document(transaction.id).set(transaction).await()
     }
 
-    /**
-     * Deletes the document with the given Firestore document ID.
-     */
+    /** Deletes the document with the given Firestore document ID. */
     suspend fun deleteById(id: String) {
         collection.document(id).delete().await()
     }
@@ -91,7 +90,7 @@ class TransactionRepository(context: Context) {
     companion object {
         /**
          * Converts "2025-05" → (startMillis, endMillis) for a Firestore
-         * range query covering that entire calendar month.
+         * range query covering the entire calendar month.
          */
         fun yearMonthToRange(yearMonth: String): Pair<Long, Long> {
             val sdf = SimpleDateFormat("yyyy-MM", Locale.getDefault())

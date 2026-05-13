@@ -61,6 +61,8 @@ dependencies {
 
     // Firestore (the database we use for transactions)
     implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-auth-ktx")            // ← NEW
+
 
     // Lets us use .await() on Firebase Tasks inside coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
