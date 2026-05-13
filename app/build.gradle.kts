@@ -1,7 +1,9 @@
+// financetracker/app/build.gradle.kts
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     id("kotlin-kapt")
+    id("com.google.gms.google-services") // ← Firebase plugin
 }
 
 android {
@@ -42,14 +44,9 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
 
-    // Fixes "Unresolved reference: viewModels"
+    // Activity / Fragment KTX (viewModels delegate)
     implementation("androidx.activity:activity-ktx:1.9.0")
     implementation("androidx.fragment:fragment-ktx:1.7.1")
-
-    // Room
-    implementation("androidx.room:room-runtime:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
 
     // ViewModel + LiveData
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
@@ -57,6 +54,17 @@ dependencies {
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+
+    // ─── Firebase ───────────────────────────────────────────────────────────
+    // BOM keeps all Firebase library versions in sync automatically
+    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
+
+    // Firestore (the database we use for transactions)
+    implementation("com.google.firebase:firebase-firestore-ktx")
+
+    // Lets us use .await() on Firebase Tasks inside coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+    // ────────────────────────────────────────────────────────────────────────
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

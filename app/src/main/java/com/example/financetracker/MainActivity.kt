@@ -1,3 +1,4 @@
+// app/src/main/java/com/example/financetracker/MainActivity.kt
 package com.example.financetracker
 
 import android.annotation.SuppressLint
@@ -40,22 +41,24 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        tvBalance = findViewById(R.id.tvBalance)
-        tvIncome = findViewById(R.id.tvIncome)
-        tvExpense = findViewById(R.id.tvExpense)
-        tvBudgetLabel = findViewById(R.id.tvBudgetLabel)
+        tvBalance      = findViewById(R.id.tvBalance)
+        tvIncome       = findViewById(R.id.tvIncome)
+        tvExpense      = findViewById(R.id.tvExpense)
+        tvBudgetLabel  = findViewById(R.id.tvBudgetLabel)
         progressBudget = findViewById(R.id.progressBudget)
         chipGroupMonths = findViewById(R.id.chipGroupMonths)
-        recyclerView = findViewById(R.id.recyclerView)
-        tvEmptyState = findViewById(R.id.tvEmptyState)
+        recyclerView   = findViewById(R.id.recyclerView)
+        tvEmptyState   = findViewById(R.id.tvEmptyState)
 
         adapter = TransactionAdapter(
             onEdit = { transaction ->
-                startActivity(Intent(this, AddEditTransactionActivity::class.java).apply {
-                    putExtra(AddEditTransactionActivity.EXTRA_TRANSACTION, transaction)
-                })
+                startActivity(
+                    Intent(this, AddEditTransactionActivity::class.java).apply {
+                        putExtra(AddEditTransactionActivity.EXTRA_TRANSACTION, transaction)
+                    }
+                )
             },
-            onDelete = { id ->
+            onDelete = { id ->   // id is now a String
                 AlertDialog.Builder(this)
                     .setTitle(getString(R.string.delete_title))
                     .setMessage(getString(R.string.delete_message))
@@ -83,7 +86,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupMonthChips() {
-        val sdf = SimpleDateFormat("yyyy-MM", Locale.getDefault())
+        val sdf        = SimpleDateFormat("yyyy-MM", Locale.getDefault())
         val displaySdf = SimpleDateFormat("MMM yyyy", Locale.getDefault())
         val currentMonth = viewModel.selectedMonth.value ?: ""
 
@@ -94,7 +97,7 @@ class MainActivity : AppCompatActivity() {
             cal.time = Date()
             cal.add(Calendar.MONTH, -i)
             val monthKey = sdf.format(cal.time)
-            val label = displaySdf.format(cal.time)
+            val label    = displaySdf.format(cal.time)
 
             val chip = Chip(this).apply {
                 text = label
@@ -119,14 +122,17 @@ class MainActivity : AppCompatActivity() {
     private fun observeViewModel() {
         viewModel.filteredTransactions.observe(this) { list ->
             adapter.submitList(list)
-            tvEmptyState.visibility = if (list.isEmpty()) TextView.VISIBLE else TextView.GONE
-            recyclerView.visibility = if (list.isEmpty()) RecyclerView.GONE else RecyclerView.VISIBLE
+            tvEmptyState.visibility =
+                if (list.isEmpty()) TextView.VISIBLE else TextView.GONE
+            recyclerView.visibility =
+                if (list.isEmpty()) RecyclerView.GONE else RecyclerView.VISIBLE
         }
 
         viewModel.monthlyBalance.observe(this) { balance ->
             tvBalance.text = getString(R.string.currency_format, balance)
             tvBalance.setTextColor(
-                if (balance >= 0) getColor(R.color.income_green) else getColor(R.color.expense_red)
+                if (balance >= 0) getColor(R.color.income_green)
+                else getColor(R.color.expense_red)
             )
         }
 
@@ -141,15 +147,15 @@ class MainActivity : AppCompatActivity() {
         viewModel.budgetProgress.observe(this) { state ->
             progressBudget.progress = state.percent
             tvBudgetLabel.text = getString(
-                R.string.budget_label,
-                state.spent, state.budget, state.percent
+                R.string.budget_label, state.spent, state.budget, state.percent
             )
         }
     }
 
     private fun showSetBudgetDialog() {
         val input = EditText(this).apply {
-            inputType = android.text.InputType.TYPE_CLASS_NUMBER or android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER or
+                    android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
             hint = getString(R.string.budget_hint)
             setText(viewModel.monthlyBudget.toInt().toString())
             setPadding(48, 32, 48, 32)
@@ -161,9 +167,12 @@ class MainActivity : AppCompatActivity() {
                 val value = input.text.toString().toDoubleOrNull()
                 if (value != null && value > 0) {
                     viewModel.setMonthlyBudget(value)
-                    viewModel.budgetProgress.value?.let { /* triggers re-observe */ }
                 } else {
-                    Toast.makeText(this, getString(R.string.error_invalid_budget), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this,
+                        getString(R.string.error_invalid_budget),
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
             .setNegativeButton(getString(R.string.cancel), null)

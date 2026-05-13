@@ -1,3 +1,4 @@
+// app/src/main/java/com/example/financetracker/TransactionViewModel.kt
 package com.example.financetracker
 
 import android.app.Application
@@ -10,22 +11,24 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
 
     private val repository = TransactionRepository(application)
 
-    // — Selected month (drives all filtered LiveData) —
+    // ── Selected month (drives all filtered LiveData) ──────────────────────
     val selectedMonth = MutableLiveData(
         SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(Date())
     )
 
     val monthlyBudget: Double get() = repository.monthlyBudget
 
-    // All transactions (unfiltered) — used only if needed globally
+    // All transactions (used by Dashboard for all-time totals)
     val allTransactions: LiveData<List<Transaction>> = repository.getAll()
 
-    // Transactions for the selected month
-    val filteredTransactions: LiveData<List<Transaction>> = selectedMonth.switchMap { month ->
-        repository.getByMonth(month)
-    }
+    // Transactions for the currently selected month chip
+    val filteredTransactions: LiveData<List<Transaction>> =
+        selectedMonth.switchMap { month ->
+            repository.getByMonth(month)
+        }
 
-    // Derived summaries from filtered transactions
+    // ── Monthly summaries ──────────────────────────────────────────────────
+
     val monthlyIncome: LiveData<Double> = filteredTransactions.map { list ->
         list.filter { it.type == TYPE_INCOME }.sumOf { it.amount }
     }
@@ -42,11 +45,12 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
 
     val budgetProgress: LiveData<BudgetState> = monthlyExpense.map { spent ->
         val budget = repository.monthlyBudget
-        val percent = if (budget <= 0) 0 else ((spent / budget) * 100).toInt().coerceAtMost(100)
+        val percent = if (budget <= 0) 0
+        else ((spent / budget) * 100).toInt().coerceAtMost(100)
         BudgetState(spent, budget, percent)
     }
 
-    // — Actions —
+    // ── Actions ────────────────────────────────────────────────────────────
 
     fun insert(transaction: Transaction) = viewModelScope.launch {
         repository.insert(transaction)
@@ -56,7 +60,8 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
         repository.update(transaction)
     }
 
-    fun deleteById(id: Long) = viewModelScope.launch {
+    /** id is now a String (Firestore document ID) */
+    fun deleteById(id: String) = viewModelScope.launch {
         repository.deleteById(id)
     }
 
@@ -68,10 +73,12 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
         selectedMonth.value = yearMonth
     }
 
+    // ── Types ──────────────────────────────────────────────────────────────
+
     data class BudgetState(val spent: Double, val budget: Double, val percent: Int)
 
     companion object {
-        const val TYPE_INCOME = "Income"
+        const val TYPE_INCOME  = "Income"
         const val TYPE_EXPENSE = "Expense"
     }
 }

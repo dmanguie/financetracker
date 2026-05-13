@@ -1,16 +1,24 @@
+// app/src/main/java/com/example/financetracker/Transaction.kt
 package com.example.financetracker
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
+import com.google.firebase.firestore.DocumentId
 import java.io.Serializable
 
-@Entity(tableName = "transactions")
+/**
+ * Data model for a single financial transaction.
+ *
+ * @DocumentId tells Firestore to automatically map the document's ID
+ * into the [id] field when reading, and to NOT store [id] as a
+ * separate field inside the document (Firestore manages it).
+ *
+ * All fields need default values so Firestore can create instances
+ * via reflection when reading documents.
+ */
 data class Transaction(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
-    var title: String,
-    var amount: Double,
-    var type: String,       // "Income" or "Expense"
-    var dateMillis: Long,   // stored as timestamp; display with DateUtils
-    var category: String
+    @DocumentId val id: String = "",   // Firestore document ID (auto-generated)
+    var title: String = "",
+    var amount: Double = 0.0,
+    var type: String = "",             // "Income" or "Expense"
+    var dateMillis: Long = 0L,         // UTC timestamp
+    var category: String = ""
 ) : Serializable

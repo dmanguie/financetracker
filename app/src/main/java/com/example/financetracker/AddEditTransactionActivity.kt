@@ -1,3 +1,4 @@
+// app/src/main/java/com/example/financetracker/AddEditTransactionActivity.kt
 package com.example.financetracker
 
 import android.app.DatePickerDialog
@@ -35,17 +36,19 @@ class AddEditTransactionActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_edit_transaction)
 
-        val etTitle = findViewById<EditText>(R.id.etTitle)
-        val etAmount = findViewById<EditText>(R.id.etAmount)
-        val tvDate = findViewById<TextView>(R.id.tvSelectedDate)
-        val btnPickDate = findViewById<Button>(R.id.btnPickDate)
-        val rgType = findViewById<RadioGroup>(R.id.rgType)
+        val etTitle        = findViewById<EditText>(R.id.etTitle)
+        val etAmount       = findViewById<EditText>(R.id.etAmount)
+        val tvDate         = findViewById<TextView>(R.id.tvSelectedDate)
+        val btnPickDate    = findViewById<Button>(R.id.btnPickDate)
+        val rgType         = findViewById<RadioGroup>(R.id.rgType)
         val spinnerCategory = findViewById<Spinner>(R.id.spinnerCategory)
-        val btnSave = findViewById<Button>(R.id.btnSave)
-        val btnCancel = findViewById<ImageButton>(R.id.btnCancel)
+        val btnSave        = findViewById<Button>(R.id.btnSave)
+        val btnCancel      = findViewById<ImageButton>(R.id.btnCancel)
 
-        // Spinner setup
-        val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, categories)
+        // ── Spinner setup ──────────────────────────────────────────────────
+        val spinnerAdapter = ArrayAdapter(
+            this, android.R.layout.simple_spinner_item, categories
+        )
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinnerCategory.adapter = spinnerAdapter
 
@@ -53,7 +56,7 @@ class AddEditTransactionActivity : AppCompatActivity() {
         selectedDateMillis = System.currentTimeMillis()
         tvDate.text = displaySdf.format(Date(selectedDateMillis))
 
-        // Date picker
+        // ── Date picker ────────────────────────────────────────────────────
         btnPickDate.setOnClickListener {
             val cal = Calendar.getInstance().apply { timeInMillis = selectedDateMillis }
             DatePickerDialog(this, { _, y, m, d ->
@@ -63,23 +66,18 @@ class AddEditTransactionActivity : AppCompatActivity() {
                 }
                 selectedDateMillis = picked.timeInMillis
                 tvDate.text = displaySdf.format(Date(selectedDateMillis))
-            }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show()
+            }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH))
+                .show()
         }
 
         @Suppress("DEPRECATION")
         editingTransaction = intent.getSerializableExtra(EXTRA_TRANSACTION) as? Transaction
 
-        // ─────────────────────────────────────────────
-        // ✅ HANDLE PRESET TYPE (from Dashboard buttons)
-        // ─────────────────────────────────────────────
         val presetType = intent.getStringExtra("PRESET_TYPE")
 
-        // ─────────────────────────────────────────────
-        // EDIT MODE
-        // ─────────────────────────────────────────────
+        // ── Edit mode ──────────────────────────────────────────────────────
         editingTransaction?.let { t ->
             supportActionBar?.title = getString(R.string.edit_transaction)
-
             etTitle.setText(t.title)
             etAmount.setText(t.amount.toString())
             selectedDateMillis = t.dateMillis
@@ -90,15 +88,11 @@ class AddEditTransactionActivity : AppCompatActivity() {
             } else {
                 findViewById<RadioButton>(R.id.rbExpense).isChecked = true
             }
-
             spinnerCategory.setSelection(categories.indexOf(t.category).coerceAtLeast(0))
-        } ?: run {
-            // ─────────────────────────────────────────────
-            // ADD MODE
-            // ─────────────────────────────────────────────
-            supportActionBar?.title = getString(R.string.add_transaction)
 
-            // Apply preset ONLY if not editing
+        } ?: run {
+            // ── Add mode ───────────────────────────────────────────────────
+            supportActionBar?.title = getString(R.string.add_transaction)
             if (presetType == TransactionViewModel.TYPE_INCOME) {
                 findViewById<RadioButton>(R.id.rbIncome).isChecked = true
             } else if (presetType == TransactionViewModel.TYPE_EXPENSE) {
@@ -108,11 +102,12 @@ class AddEditTransactionActivity : AppCompatActivity() {
 
         btnCancel.setOnClickListener { finish() }
 
+        // ── Save ───────────────────────────────────────────────────────────
         btnSave.setOnClickListener {
-            val titleText = etTitle.text.toString().trim()
-            val amountText = etAmount.text.toString().trim()
+            val titleText      = etTitle.text.toString().trim()
+            val amountText     = etAmount.text.toString().trim()
             val selectedTypeId = rgType.checkedRadioButtonId
-            val category = spinnerCategory.selectedItem.toString()
+            val category       = spinnerCategory.selectedItem.toString()
 
             if (titleText.isEmpty()) {
                 etTitle.error = getString(R.string.error_required)
@@ -126,7 +121,11 @@ class AddEditTransactionActivity : AppCompatActivity() {
             }
 
             if (selectedTypeId == -1) {
-                Toast.makeText(this, getString(R.string.error_select_type), Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this,
+                    getString(R.string.error_select_type),
+                    Toast.LENGTH_SHORT
+                ).show()
                 return@setOnClickListener
             }
 
@@ -136,23 +135,25 @@ class AddEditTransactionActivity : AppCompatActivity() {
                 TransactionViewModel.TYPE_EXPENSE
 
             if (editingTransaction == null) {
+                // INSERT — id is left as "" because Firestore auto-generates it
                 viewModel.insert(
                     Transaction(
-                        title = titleText,
-                        amount = amount,
-                        type = type,
+                        title      = titleText,
+                        amount     = amount,
+                        type       = type,
                         dateMillis = selectedDateMillis,
-                        category = category
+                        category   = category
                     )
                 )
             } else {
+                // UPDATE — keep the existing Firestore document id
                 viewModel.update(
                     editingTransaction!!.copy(
-                        title = titleText,
-                        amount = amount,
-                        type = type,
+                        title      = titleText,
+                        amount     = amount,
+                        type       = type,
                         dateMillis = selectedDateMillis,
-                        category = category
+                        category   = category
                     )
                 )
             }
