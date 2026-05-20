@@ -1,9 +1,9 @@
-// financetracker/app/build.gradle.kts
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.jetbrainsKotlinAndroid)
     id("kotlin-kapt")
-    id("com.google.gms.google-services") // ← Firebase plugin
+    id("com.google.gms.google-services")
 }
 
 android {

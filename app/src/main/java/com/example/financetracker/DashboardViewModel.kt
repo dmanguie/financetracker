@@ -3,15 +3,40 @@ package com.example.financetracker
 
 import android.app.Application
 import androidx.lifecycle.*
+import com.google.firebase.auth.FirebaseAuth
 import java.text.SimpleDateFormat
 import java.util.*
 
 class DashboardViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = TransactionRepository(application)
+    private val auth = FirebaseAuth.getInstance()
 
-    // Observe ALL transactions from Firestore in real time
-    val allTransactions: LiveData<List<Transaction>> = repository.getAll()
+    // ── Auth gate ──────────────────────────────────────────────────────────
+    // Only becomes true once Firebase confirms a logged-in user.
+    // Everything else derives from this so nothing queries Firestore
+    // until auth is ready.
+    private val isAuthReady = MutableLiveData<Boolean>(false)
+
+    private val authListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+        isAuthReady.postValue(firebaseAuth.currentUser != null)
+    }
+
+    init {
+        auth.addAuthStateListener(authListener)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        auth.removeAuthStateListener(authListener)
+    }
+
+    // ── Data — only loads after auth is confirmed ──────────────────────────
+    val allTransactions: LiveData<List<Transaction>> =
+        isAuthReady.switchMap { ready ->
+            if (ready) repository.getAll()
+            else MutableLiveData(emptyList())
+        }
 
     val totalBalance: LiveData<Double> = allTransactions.map { list ->
         val income  = list.filter { it.type == TransactionViewModel.TYPE_INCOME  }.sumOf { it.amount }
@@ -29,12 +54,10 @@ class DashboardViewModel(application: Application) : AndroidViewModel(applicatio
 
     val totalTransactionCount: LiveData<Int> = allTransactions.map { it.size }
 
-    // Five most recent transactions for the dashboard card
     val recentTransactions: LiveData<List<Transaction>> = allTransactions.map { list ->
         list.take(5)
     }
 
-    // Expenses for the current calendar month only
     val currentMonthExpense: LiveData<Double> = allTransactions.map { list ->
         val currentMonth = SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(Date())
         val (start, end) = TransactionRepository.yearMonthToRange(currentMonth)

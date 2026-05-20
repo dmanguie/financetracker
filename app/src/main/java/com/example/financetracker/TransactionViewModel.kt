@@ -3,6 +3,7 @@ package com.example.financetracker
 
 import android.app.Application
 import androidx.lifecycle.*
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -10,25 +11,48 @@ import java.util.*
 class TransactionViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = TransactionRepository(application)
+    private val auth = FirebaseAuth.getInstance()
 
-    // ── Selected month (drives all filtered LiveData) ──────────────────────
+    // ── Auth gate ──────────────────────────────────────────────────────────
+    private val isAuthReady = MutableLiveData(auth.currentUser != null)
+
+    private val authListener = FirebaseAuth.AuthStateListener { firebaseAuth ->
+        isAuthReady.postValue(firebaseAuth.currentUser != null)
+    }
+
+    init {
+        auth.addAuthStateListener(authListener)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        auth.removeAuthStateListener(authListener)
+    }
+
+    // ── Selected month ─────────────────────────────────────────────────────
     val selectedMonth = MutableLiveData(
         SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(Date())
     )
 
     val monthlyBudget: Double get() = repository.monthlyBudget
 
-    // All transactions (used by Dashboard for all-time totals)
-    val allTransactions: LiveData<List<Transaction>> = repository.getAll()
+    // ── All transactions — waits for auth before querying ──────────────────
+    val allTransactions: LiveData<List<Transaction>> =
+        isAuthReady.switchMap { ready ->
+            if (ready) repository.getAll()
+            else MutableLiveData(emptyList())
+        }
 
-    // Transactions for the currently selected month chip
+    // ── Filtered by month — waits for both auth AND selected month ─────────
     val filteredTransactions: LiveData<List<Transaction>> =
-        selectedMonth.switchMap { month ->
-            repository.getByMonth(month)
+        isAuthReady.switchMap { ready ->
+            if (!ready) return@switchMap MutableLiveData(emptyList())
+            selectedMonth.switchMap { month ->
+                repository.getByMonth(month)
+            }
         }
 
     // ── Monthly summaries ──────────────────────────────────────────────────
-
     val monthlyIncome: LiveData<Double> = filteredTransactions.map { list ->
         list.filter { it.type == TYPE_INCOME }.sumOf { it.amount }
     }
@@ -51,7 +75,6 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     // ── Actions ────────────────────────────────────────────────────────────
-
     fun insert(transaction: Transaction) = viewModelScope.launch {
         repository.insert(transaction)
     }
@@ -60,7 +83,6 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
         repository.update(transaction)
     }
 
-    /** id is now a String (Firestore document ID) */
     fun deleteById(id: String) = viewModelScope.launch {
         repository.deleteById(id)
     }
@@ -74,7 +96,6 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     // ── Types ──────────────────────────────────────────────────────────────
-
     data class BudgetState(val spent: Double, val budget: Double, val percent: Int)
 
     companion object {
